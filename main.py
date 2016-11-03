@@ -1,5 +1,5 @@
 # tictactoe
-
+import sys
 x = 3  # playing space width & height
 
 
@@ -109,6 +109,22 @@ def CheckStep(t, inp):
         return True
 
 
+def Progress(table, pl):
+    inp = input("player" + str(pl) + ": ")
+    while not CheckStep(table, inp):
+        inp = input("player" + str(pl) + ": ")
+    if inp == 'x':
+        sys.exit
+    table = Step(table, FormatInput(inp), pl)
+    PrintTable(table)
+    if CheckWin(table, FormatInput(inp), pl):
+        print("game over! player " + str(pl) + " won!")
+        return True
+    if CheckGameOver(table):
+        print("game over!")
+        return True
+
+
 def main():
     table = InitTable()  # table[row][column]
     PrintTable(table)
@@ -122,28 +138,24 @@ def main():
         #     run = False
         #     break
 
-        inp = input("player1: ")
-        while not CheckStep(table, inp):
-            inp = input("player1: ")
-        table = Step(table, FormatInput(inp), 1)
-        PrintTable(table)
-        if CheckWin(table, FormatInput(inp), 1):
-            print("game over! player 1 won!")
-            break
-        if CheckGameOver(table):
-            print("game over!")
+        # inp = input("player1: ")
+        # while not CheckStep(table, inp):
+        #     inp = input("player1: ")
+        # if inp == 'x':
+        #     sys.exit
+        # table = Step(table, FormatInput(inp), 1)
+        # PrintTable(table)
+        # if CheckWin(table, FormatInput(inp), 1):
+        #     print("game over! player 1 won!")
+        #     break
+        # if CheckGameOver(table):
+        #     print("game over!")
+        #     break
+
+        if Progress(table, 1):
             break
 
-        inp = input("player2: ")
-        while not CheckStep(table, inp):
-            inp = input("player2: ")
-        table = Step(table, FormatInput(inp), 2)
-        PrintTable(table)
-        if CheckWin(table, FormatInput(inp), 2):
-            print("game over! player 2 won!")
-            break
-        if CheckGameOver(table):
-            print("game over!")
+        if Progress(table, 2):
             break
 
 main()
