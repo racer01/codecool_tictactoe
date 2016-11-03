@@ -46,13 +46,18 @@ def CheckWin(table, poz, player):
         else:
             nc = 0
     # diagonally
-    nd = 0
+    ndl = 0
+    ndr = 0
     for i in range(x):
-        if table[i][i] == player:
-            nd += 1
+        if table[i][x - i - 1] == player:
+            ndl += 1
         else:
-            nd = 0
-    return (nr == 3) or (nc == 3) or (nd == 3)
+            ndl = 0
+        if table[i][i] == player:
+            ndr += 1
+        else:
+            ndr = 0
+    return (nr == x) or (nc == x) or (ndl == x) or (ndr == x)
 
 
 def CheckGameOver(t):
