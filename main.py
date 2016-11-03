@@ -1,6 +1,4 @@
 # tictactoe
-import curses
-from curses import wrapper
 
 x = 3
 
