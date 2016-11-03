@@ -46,8 +46,8 @@ def CheckWin(table, poz, player):
         else:
             nc = 0
     # diagonally
-    ndl = 0
-    ndr = 0
+    ndl = 0  # diagonal left
+    ndr = 0  # diagonal right
     for i in range(x):
         if table[i][x - i - 1] == player:
             ndl += 1
@@ -61,11 +61,13 @@ def CheckWin(table, poz, player):
 
 
 def CheckGameOver(t):
-    gameover = False
+    """ Check if there's any empty cell """
+    gameover = True
     for row in t:
         for cell in row:
-            if cell == ' ':
-                True
+            if cell == 0:
+                gameover = False
+    return gameover
 
 
 def StepCol(input_str):  # Return column from input number
@@ -103,7 +105,7 @@ def Step(t, form_inp, player):
 
 def CheckStep(t, inp):
     form_inp = FormatInput(inp)
-    if -1 in form_inp or t[form_inp[0]][form_inp[1]] != 0:
+    if -1 in form_inp or t[form_inp[0]][form_inp[1]] != 0 or inp == 'x':
         return False
     else:
         return True
@@ -112,9 +114,9 @@ def CheckStep(t, inp):
 def Progress(table, pl):
     inp = input("player" + str(pl) + ": ")
     while not CheckStep(table, inp):
+        if inp == "x":
+            sys.exit()
         inp = input("player" + str(pl) + ": ")
-    if inp == 'x':
-        sys.exit
     table = Step(table, FormatInput(inp), pl)
     PrintTable(table)
     if CheckWin(table, FormatInput(inp), pl):
@@ -129,32 +131,8 @@ def main():
     table = InitTable()  # table[row][column]
     PrintTable(table)
     while True:
-        # inp = input("player1: ")
-        # if -1 not in FormatInput(inp):
-        #     table = Step(table, FormatInput(inp), 1)
-        # PrintTable(table)
-        # if CheckWin(table, FormatInput(inp), 1):
-        # if CheckGameOver(table) or player_won != '':
-        #     run = False
-        #     break
-
-        # inp = input("player1: ")
-        # while not CheckStep(table, inp):
-        #     inp = input("player1: ")
-        # if inp == 'x':
-        #     sys.exit
-        # table = Step(table, FormatInput(inp), 1)
-        # PrintTable(table)
-        # if CheckWin(table, FormatInput(inp), 1):
-        #     print("game over! player 1 won!")
-        #     break
-        # if CheckGameOver(table):
-        #     print("game over!")
-        #     break
-
         if Progress(table, 1):
             break
-
         if Progress(table, 2):
             break
 
