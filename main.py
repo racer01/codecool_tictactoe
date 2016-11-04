@@ -1,10 +1,12 @@
 # tictactoe
 import sys
+import os
 x = 3  # playing space width & height
 
 
 def PrintTable(t):
     """ Prints 2d list specified in parameter (t) as the game layout"""
+    os.system('clear')
     print(("-" * x * 2) + "-")  # upper edge
     for i in range(x):
         s = "|"  # first left edge
@@ -104,6 +106,8 @@ def Step(t, form_inp, player):
 
 
 def CheckStep(t, inp):
+    """ Check if input is valid
+        invalid inputs: out of range, not free cell, or x"""
     form_inp = FormatInput(inp)
     if -1 in form_inp or t[form_inp[0]][form_inp[1]] != 0 or inp == 'x':
         return False
