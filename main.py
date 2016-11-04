@@ -119,6 +119,7 @@ def Progress(table, pl):
     inp = input("player" + str(pl) + ": ")
     while not CheckStep(table, inp):
         if inp == "x":
+            print("Exiting...")
             sys.exit()
         inp = input("player" + str(pl) + ": ")
     table = Step(table, FormatInput(inp), pl)
