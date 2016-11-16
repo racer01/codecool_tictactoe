@@ -25,7 +25,7 @@ def main(stdscr):
     for y in range(sizeY):
         row = []
         for x in range(sizeX):
-            row.append([(y * 2) + startY, ((x * 4) + 1) + startY])
+            row.append([(y * 2) + startY, ((x * 4) + 1) + startX])
         locations.append(row)
 
     stdscr.move(locations[0][1][0], locations[0][1][1])
