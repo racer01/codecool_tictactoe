@@ -18,11 +18,15 @@ def main(stdscr):
         stdscr.vline(startY, colStart, curses.ACS_VLINE, (sizeY * 2) - 1)
     for crossY in range(startY + 1, (sizeY * 2) + startY - 1, 2):
         for crossX in range(startX + 3, (sizeX * 4) + startX - 1, 4):
-            pass
+            stdscr.addch(crossY, crossX, curses.ACS_PLUS)
 
-    locations = (((0, 1), (0, 5), (0, 9)),
-                 ((2, 1), (2, 5), (2, 9)),
-                 ((4, 1), (4, 5), (4, 9)))
+    # (y, x)
+    locations = []
+    for y in range(sizeY):
+        row = []
+        for x in range(sizeX):
+            row.append([y * 2, (x * 4) + 1])
+        locations.append(row)
 
     stdscr.move(locations[0][1][0], locations[0][1][1])
     while True:
