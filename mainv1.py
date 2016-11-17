@@ -1,55 +1,36 @@
 # tictactoe
 import sys
 import os
-
-import curses
-from curses import wrapper
-
 x = 3  # playing space width & height
 
 
-# NOTE: diplay
-
-def PrintTable(stdscr, size, startPoz, t, locs):
-    for rowStart in range(startPoz['y'] + 1, (size['y'] * 2) + startPoz['y'] - 1, 2):
-        stdscr.hline(rowStart, startPoz['x'], curses.ACS_HLINE, (size['x'] * 4) - 1)
-    for colStart in range(startPoz['x'] + 3, (size['x'] * 4) + startPoz['x'] - 1, 4):
-        stdscr.vline(startPoz['y'], colStart, curses.ACS_VLINE, (size['y'] * 2) - 1)
-    for crossY in range(startPoz['y'] + 1, (size['y'] * 2) + startPoz['y'] - 1, 2):
-        for crossX in range(startPoz['x'] + 3, (size['x'] * 4) + startPoz['x'] - 1, 4):
-            stdscr.addch(crossY, crossX, curses.ACS_PLUS)
-
-    for i in range(size['y']):
-        for j in range(size['x']):  # generate all rows
-            if t[i][j] == 1:
-                stdscr.addch(locs[i][j]['y'], locs[i][j]['x'], "X")
+def PrintTable(t):
+    """ Prints 2d list specified in parameter (t) as the game layout"""
+    os.system('clear')
+    print(("-" * x * 2) + "-")  # upper edge
+    for i in range(x):
+        s = "|"  # first left edge
+        for j in range(x):  # generate all rows
+            if t[i][j] == 0:
+                s += (" " + "|")
+            elif t[i][j] == 1:
+                s += ("X" + "|")
             elif t[i][j] == 2:
-                stdscr.addch(locs[i][j]['y'], locs[i][j]['x'], "O")
+                s += ("O" + "|")
+        print(s)  # print row
+        print(("-" * x * 2) + "-")  # print bottom divider
 
 
-def InitTable(size):
+def InitTable():
     """ Returns a (2d) list[[]] with 0 values """
-    # table[row][column]
     t = []
-    for i in range(size['y']):
+    for i in range(x):
         temp = []
-        for j in range(size['x']):
+        for j in range(x):
             temp.append(0)
         t.append(temp)
     return t
 
-
-def calc_step_locations(size, startPoz):
-    locs = []
-    for y in range(size['y']):
-        row = []
-        for x in range(size['x']):
-            row.append({'y': (y * 2) + startPoz['y'], 'x': ((x * 4) + 1) + startPoz['x']})
-        locs.append(row)
-    return locs
-
-
-# NOTE: game logic
 
 def CheckWin(table, poz, player):
     # horizontally
@@ -113,12 +94,11 @@ def StepRow(input_str):  # Return row from input number
         return -1
 
 
-# FIXME
 def FormatInput(input_str):
     """ Returns formatted input, as [row][col] """
     return [StepRow(input_str), StepCol(input_str)]
 
-#FIXME
+
 def Step(t, form_inp, player):
     if t[form_inp[0]][form_inp[1]] == 0:
         t[form_inp[0]][form_inp[1]] = player
@@ -134,7 +114,7 @@ def CheckStep(t, inp):
     else:
         return True
 
-# FIXME
+
 def Progress(table, pl):
     inp = input("player" + str(pl) + ": ")
     while not CheckStep(table, inp):
@@ -152,56 +132,13 @@ def Progress(table, pl):
         return True
 
 
-def main(stdscr):
-    size = {'y': 2, 'x': 5}
-    startPoz = {'y': 2, 'x': 4}
-    currentPoz = {'y': 0, 'x': 0}
-    table = InitTable(size)  # init an empty table[row][column]
-    locations = calc_step_locations(size, startPoz)  # calc possible step locations[row][col]['y' or 'x']
-    cursorPoz = {'y': locations[currentPoz['y']][currentPoz['x']]['y'],
-                 'x': locations[currentPoz['y']][currentPoz['x']]['x']}
-
-    PrintTable(stdscr, size, startPoz, table, locations)
-    stdscr.move(cursorPoz['y'], cursorPoz['x'])
-    # XXX
-    stdscr.addstr(10, 0, str(table))
-
+def main():
+    table = InitTable()  # table[row][column]
+    PrintTable(table)
     while True:
-        k = stdscr.getkey()
-        if k == "KEY_DOWN":
-            if currentPoz['y'] < size['y'] - 1:
-                currentPoz['y'] += 1
-        elif k == "KEY_UP":
-            if currentPoz['y'] > 0:
-                currentPoz['y'] -= 1
-        elif k == "KEY_LEFT":
-            if currentPoz['x'] > 0:
-                currentPoz['x'] -= 1
-        elif k == "KEY_RIGHT":
-            if currentPoz['x'] < size['x'] - 1:
-                currentPoz['x'] += 1
-        elif k == " ":
-            pass
-        else:
-            continue
-
-        PrintTable(stdscr, size, startPoz, table, locations)
-        cursorPoz = {'y': locations[currentPoz['y']][currentPoz['x']]['y'],
-                     'x': locations[currentPoz['y']][currentPoz['x']]['x']}
-
-        # XXX
-        stdscr.move(0, 0)
-        stdscr.addstr(str(currentPoz))
-        stdscr.move(0, 20)
-        stdscr.addstr(str(cursorPoz))
-        # XXX
-
-        stdscr.move(cursorPoz['y'], cursorPoz['x'])
-        stdscr.refresh()
-'''
         if Progress(table, 1):
             break
         if Progress(table, 2):
             break
-'''
-wrapper(main)
+
+main()
