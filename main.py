@@ -5,7 +5,7 @@ import os
 import curses
 from curses import wrapper
 
-x = 3  # playing space width & height
+# x = 3  # playing space width & height
 
 
 # NOTE: diplay
@@ -22,9 +22,9 @@ def PrintTable(stdscr, size, startPoz, t, locs):
     for i in range(size['y']):
         for j in range(size['x']):  # generate all rows
             if t[i][j] == 1:
-                stdscr.addch(locs[i][j]['y'], locs[i][j]['x'], "X")
+                stdscr.addstr(locs[i][j]['y'], locs[i][j]['x'], "X")
             elif t[i][j] == 2:
-                stdscr.addch(locs[i][j]['y'], locs[i][j]['x'], "O")
+                stdscr.addstr(locs[i][j]['y'], locs[i][j]['x'], "O")
 
 
 def InitTable(size):
@@ -39,7 +39,7 @@ def InitTable(size):
     return t
 
 
-def calc_step_locations(size, startPoz):
+def CalcStepLocations(size, startPoz):
     locs = []
     for y in range(size['y']):
         row = []
@@ -51,10 +51,10 @@ def calc_step_locations(size, startPoz):
 
 # NOTE: game logic
 
-def CheckWin(table, poz, player):
+def CheckWin(table, stepPoz, player):
     # horizontally
     nr = 0
-    for cell in table[poz[0]]:
+    for cell in table[stepPoz['y']]:
         if cell == player:
             nr += 1
         else:
@@ -62,15 +62,16 @@ def CheckWin(table, poz, player):
     # vertically
     nc = 0
     for row in table:
-        if row[poz[1]] == player:
+        if row[stepPoz['x']] == player:
             nc += 1
         else:
             nc = 0
     # diagonally
+    s = min(size['y'], size['x'])
     ndl = 0  # diagonal left
     ndr = 0  # diagonal right
-    for i in range(x):
-        if table[i][x - i - 1] == player:
+    for i in range(s):
+        if table[i][s - i - 1] == player:
             ndl += 1
         else:
             ndl = 0
@@ -78,7 +79,7 @@ def CheckWin(table, poz, player):
             ndr += 1
         else:
             ndr = 0
-    return (nr == x) or (nc == x) or (ndl == x) or (ndr == x)
+    return (nr == s) or (nc == s) or (ndl == s) or (ndr == s)
 
 
 def CheckGameOver(t):
@@ -91,84 +92,95 @@ def CheckGameOver(t):
     return gameover
 
 
-def StepCol(input_str):  # Return column from input number
-    if (input_str == '1') or (input_str == '4') or (input_str == '7'):
-        return 0
-    elif (input_str == '2') or (input_str == '5') or (input_str == '8'):
-        return 1
-    elif (input_str == '3') or (input_str == '6') or (input_str == '9'):
-        return 2
-    else:
-        return -1
+# NOTE: no need
+# def StepCol(input_str):  # Return column from input number
+#     if (input_str == '1') or (input_str == '4') or (input_str == '7'):
+#         return 0
+#     elif (input_str == '2') or (input_str == '5') or (input_str == '8'):
+#         return 1
+#     elif (input_str == '3') or (input_str == '6') or (input_str == '9'):
+#         return 2
+#     else:
+#         return -1
 
 
-def StepRow(input_str):  # Return row from input number
-    if (input_str == '1') or (input_str == '2') or (input_str == '3'):
-        return 2
-    elif (input_str == '4') or (input_str == '5') or (input_str == '6'):
-        return 1
-    elif (input_str == '7') or (input_str == '8') or (input_str == '9'):
-        return 0
-    else:
-        return -1
+# def StepRow(input_str):  # Return row from input number
+#     if (input_str == '1') or (input_str == '2') or (input_str == '3'):
+#         return 2
+#     elif (input_str == '4') or (input_str == '5') or (input_str == '6'):
+#         return 1
+#     elif (input_str == '7') or (input_str == '8') or (input_str == '9'):
+#         return 0
+#     else:
+#         return -1
 
 
-# FIXME
-def FormatInput(input_str):
-    """ Returns formatted input, as [row][col] """
-    return [StepRow(input_str), StepCol(input_str)]
+# def FormatInput(input_str):
+#     """ Returns formatted input, as [row][col] """
+#     return [StepRow(input_str), StepCol(input_str)]
 
-#FIXME
-def Step(t, form_inp, player):
-    if t[form_inp[0]][form_inp[1]] == 0:
-        t[form_inp[0]][form_inp[1]] = player
+
+def Step(t, stepPoz, player):
+    if t[stepPoz['y']][stepPoz['x']] == 0:
+        t[stepPoz['y']][stepPoz['x']] = player
     return t
 
 
-def CheckStep(t, inp):
+def CheckStep(t, stepPoz):
     """ Check if input is valid
         invalid inputs: out of range, not free cell, or x"""
-    form_inp = FormatInput(inp)
-    if -1 in form_inp or t[form_inp[0]][form_inp[1]] != 0 or inp == 'x':
+    if t[stepPoz['y']][stepPoz['x']] != 0:
         return False
     else:
         return True
 
-# FIXME
-def Progress(table, pl):
-    inp = input("player" + str(pl) + ": ")
-    while not CheckStep(table, inp):
-        if inp == "x":
-            print("Exiting...")
-            sys.exit()
-        inp = input("player" + str(pl) + ": ")
-    table = Step(table, FormatInput(inp), pl)
-    PrintTable(table)
-    if CheckWin(table, FormatInput(inp), pl):
-        print("game over! player " + str(pl) + " won!")
-        return True
-    if CheckGameOver(table):
-        print("game over!")
-        return True
+
+def Progress(table, stepPoz, pl):
+    # inp = input("player" + str(pl) + ": ")
+    # while not CheckStep(table, inp):
+    #     if inp == "x":
+    #         print("Exiting...")
+    #         sys.exit()
+    #     inp = input("player" + str(pl) + ": ")
+    check_step = CheckStep(table, stepPoz)
+    table = Step(table, stepPoz, pl)
+    return check_step
+    # PrintTable(stdscr, size, startPoz, table, locations)
+    # print("game over! player " + str(pl) + " won!")
+    # print("game over!")
+
+
+size = {'y': 5, 'x': 5}
 
 
 def main(stdscr):
-    size = {'y': 2, 'x': 5}
     startPoz = {'y': 2, 'x': 4}
     currentPoz = {'y': 0, 'x': 0}
     table = InitTable(size)  # init an empty table[row][column]
-    locations = calc_step_locations(size, startPoz)  # calc possible step locations[row][col]['y' or 'x']
+    locations = CalcStepLocations(size, startPoz)  # calc possible step locations[row][col]['y' or 'x']
     cursorPoz = {'y': locations[currentPoz['y']][currentPoz['x']]['y'],
                  'x': locations[currentPoz['y']][currentPoz['x']]['x']}
+    player = 0
 
     PrintTable(stdscr, size, startPoz, table, locations)
-    stdscr.move(cursorPoz['y'], cursorPoz['x'])
     # XXX
-    stdscr.addstr(10, 0, str(table))
+    # stdscr.addstr(10, 0, str(table))
+    stdscr.move(cursorPoz['y'], cursorPoz['x'])
 
+    check_step = False
     while True:
         k = stdscr.getkey()
-        if k == "KEY_DOWN":
+        if k == " ":
+            # stdscr.addstr(10, 20, 's')
+            check_step = Progress(table, currentPoz, player + 1)
+            if CheckWin(table, currentPoz, player + 1) or CheckGameOver(table):
+                sys.exit()
+            if check_step:
+                if player:
+                    player = 0
+                else:
+                    player = 1
+        elif k == "KEY_DOWN":
             if currentPoz['y'] < size['y'] - 1:
                 currentPoz['y'] += 1
         elif k == "KEY_UP":
@@ -180,8 +192,6 @@ def main(stdscr):
         elif k == "KEY_RIGHT":
             if currentPoz['x'] < size['x'] - 1:
                 currentPoz['x'] += 1
-        elif k == " ":
-            pass
         else:
             continue
 
@@ -194,12 +204,12 @@ def main(stdscr):
         stdscr.addstr(str(currentPoz))
         stdscr.move(0, 20)
         stdscr.addstr(str(cursorPoz))
+        stdscr.addstr(15, 0, str(table))
         # XXX
-
         stdscr.move(cursorPoz['y'], cursorPoz['x'])
         stdscr.refresh()
 '''
-        if Progress(table, 1):
+        if Progress(table, , 1):
             break
         if Progress(table, 2):
             break
