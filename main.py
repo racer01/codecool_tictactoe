@@ -5,41 +5,58 @@ import os
 import curses
 from curses import wrapper
 
-# x = 3  # playing space width & height
-
 
 # NOTE: diplay
 
 def PrintTable(stdscr, size, startPoz, t, locs):
+    """
+    Prints table borders and content
+
+    Arguments:
+    stdscr: standard screen where the table is printed
+    size['y' or 'x']: size of the table
+    startPoz['y' or 'x']: table padding
+    t[row][col]: table
+    locs[row][col]['y' or 'x']: table content locations on screen
+    """
+    # prints borders
     for rowStart in range(startPoz['y'] + 1, (size['y'] * 2) + startPoz['y'] - 1, 2):
-        stdscr.hline(rowStart, startPoz['x'], curses.ACS_HLINE, (size['x'] * 4) - 1)
+        stdscr.hline(rowStart, startPoz['x'], curses.ACS_HLINE, (size['x'] * 4) - 1)  # horizontal lines
     for colStart in range(startPoz['x'] + 3, (size['x'] * 4) + startPoz['x'] - 1, 4):
-        stdscr.vline(startPoz['y'], colStart, curses.ACS_VLINE, (size['y'] * 2) - 1)
+        stdscr.vline(startPoz['y'], colStart, curses.ACS_VLINE, (size['y'] * 2) - 1)  # vertical lines
     for crossY in range(startPoz['y'] + 1, (size['y'] * 2) + startPoz['y'] - 1, 2):
         for crossX in range(startPoz['x'] + 3, (size['x'] * 4) + startPoz['x'] - 1, 4):
-            stdscr.addch(crossY, crossX, curses.ACS_PLUS)
-
+            stdscr.addch(crossY, crossX, curses.ACS_PLUS)  # line crossings
+    # prints table content
     for i in range(size['y']):
         for j in range(size['x']):  # generate all rows
-            if t[i][j] == 1:
+            if t[i][j] == 1:  # player 1
                 stdscr.addstr(locs[i][j]['y'], locs[i][j]['x'], "X")
-            elif t[i][j] == 2:
+            elif t[i][j] == 2:  # player 2
                 stdscr.addstr(locs[i][j]['y'], locs[i][j]['x'], "O")
 
 
 def InitTable(size):
-    """ Returns a (2d) list[[]] with 0 values """
-    # table[row][column]
+    """
+    Returns a (2d) list[[]] with 0 values as table[row][column]
+    """
     t = []
     for i in range(size['y']):
         temp = []
         for j in range(size['x']):
-            temp.append(0)
+            temp.append(0)  # populating with 0s
         t.append(temp)
     return t
 
 
 def CalcStepLocations(size, startPoz):
+    """
+    Returns a list of the on-screen cell locations
+
+    Arguments:
+    size: size of table
+    startPoz: table padding
+    """
     locs = []
     for y in range(size['y']):
         row = []
@@ -52,14 +69,17 @@ def CalcStepLocations(size, startPoz):
 # NOTE: game logic
 
 def CheckWin(table, stepPoz, player):
-    # horizontally
+    """
+    Checks and returns whether a player won
+    """
+    # horizontally ---
     nr = 0
     for cell in table[stepPoz['y']]:
         if cell == player:
             nr += 1
         else:
             nr = 0
-    # vertically
+    # vertically |
     nc = 0
     for row in table:
         if row[stepPoz['x']] == player:
@@ -67,9 +87,9 @@ def CheckWin(table, stepPoz, player):
         else:
             nc = 0
     # diagonally
-    s = min(size['y'], size['x'])
-    ndl = 0  # diagonal left
-    ndr = 0  # diagonal right
+    s = min(size['y'], size['x'])  # biggest inner square edge length
+    ndl = 0  # diagonal left  /
+    ndr = 0  # diagonal right \
     for i in range(s):
         if table[i][s - i - 1] == player:
             ndl += 1
@@ -82,102 +102,75 @@ def CheckWin(table, stepPoz, player):
     return (nr == s) or (nc == s) or (ndl == s) or (ndr == s)
 
 
-def CheckGameOver(t):
-    """ Check if there's any empty cell """
+def CheckGameOver(table):
+    """ Checks and returns whether there's any empty cell """
     gameover = True
-    for row in t:
+    for row in table:
         for cell in row:
             if cell == 0:
                 gameover = False
     return gameover
 
 
-# NOTE: no need
-# def StepCol(input_str):  # Return column from input number
-#     if (input_str == '1') or (input_str == '4') or (input_str == '7'):
-#         return 0
-#     elif (input_str == '2') or (input_str == '5') or (input_str == '8'):
-#         return 1
-#     elif (input_str == '3') or (input_str == '6') or (input_str == '9'):
-#         return 2
-#     else:
-#         return -1
+# def asdasd(t, stepPoz, player):
+#     """
+#     Writes the player's number into the table if the cell at stepPoz is empty
+#     """
+#     if t[stepPoz['y']][stepPoz['x']] == 0:
+#         t[stepPoz['y']][stepPoz['x']] = player
+#     return t
 
 
-# def StepRow(input_str):  # Return row from input number
-#     if (input_str == '1') or (input_str == '2') or (input_str == '3'):
-#         return 2
-#     elif (input_str == '4') or (input_str == '5') or (input_str == '6'):
-#         return 1
-#     elif (input_str == '7') or (input_str == '8') or (input_str == '9'):
-#         return 0
-#     else:
-#         return -1
-
-
-# def FormatInput(input_str):
-#     """ Returns formatted input, as [row][col] """
-#     return [StepRow(input_str), StepCol(input_str)]
-
-
-def Step(t, stepPoz, player):
-    if t[stepPoz['y']][stepPoz['x']] == 0:
-        t[stepPoz['y']][stepPoz['x']] = player
-    return t
-
-
-def CheckStep(t, stepPoz):
-    """ Check if input is valid
-        invalid inputs: out of range, not free cell, or x"""
-    if t[stepPoz['y']][stepPoz['x']] != 0:
-        return False
-    else:
+def CheckStep(table, stepPoz):
+    """
+    Checks whether stepPoz is an empty cell (no player have stepped there before)
+    """
+    if table[stepPoz['y']][stepPoz['x']] == 0:
         return True
+    else:
+        return False
 
 
-def Progress(table, stepPoz, pl):
-    # inp = input("player" + str(pl) + ": ")
-    # while not CheckStep(table, inp):
-    #     if inp == "x":
-    #         print("Exiting...")
-    #         sys.exit()
-    #     inp = input("player" + str(pl) + ": ")
-    check_step = CheckStep(table, stepPoz)
-    table = Step(table, stepPoz, pl)
-    return check_step
-    # PrintTable(stdscr, size, startPoz, table, locations)
-    # print("game over! player " + str(pl) + " won!")
-    # print("game over!")
+def Step(table, stepPoz, player):
+    """
+    Steps if it's possible, and returns it's possibility
+    """
+    valid_step = CheckStep(table, stepPoz)
+    if valid_step:
+        table[stepPoz['y']][stepPoz['x']] = player
+    return valid_step
 
-
-size = {'y': 5, 'x': 5}
+size = {'y': 3, 'x': 3}
 
 
 def main(stdscr):
+    # init vars
     startPoz = {'y': 2, 'x': 4}
     currentPoz = {'y': 0, 'x': 0}
     table = InitTable(size)  # init an empty table[row][column]
     locations = CalcStepLocations(size, startPoz)  # calc possible step locations[row][col]['y' or 'x']
     cursorPoz = {'y': locations[currentPoz['y']][currentPoz['x']]['y'],
                  'x': locations[currentPoz['y']][currentPoz['x']]['x']}
-    player = 0
+    player = 1
 
     PrintTable(stdscr, size, startPoz, table, locations)
     # XXX
     # stdscr.addstr(10, 0, str(table))
-    stdscr.move(cursorPoz['y'], cursorPoz['x'])
+    # stdscr.move(cursorPoz['y'], cursorPoz['x'])
 
-    check_step = False
+    stepped = False
     while True:
+        PrintTable(stdscr, size, startPoz, table, locations)
+        stdscr.addstr(0, 0, "player " + str(player))
+        stdscr.move(cursorPoz['y'], cursorPoz['x'])
         k = stdscr.getkey()
         if k == " ":
-            # stdscr.addstr(10, 20, 's')
-            check_step = Progress(table, currentPoz, player + 1)
-            if CheckWin(table, currentPoz, player + 1) or CheckGameOver(table):
+            stepped = Step(table, currentPoz, player)
+            if CheckWin(table, currentPoz, player) or CheckGameOver(table):
                 sys.exit()
-            if check_step:
-                if player:
-                    player = 0
+            if stepped:
+                if player == 1:
+                    player = 2
                 else:
                     player = 1
         elif k == "KEY_DOWN":
@@ -195,23 +188,24 @@ def main(stdscr):
         else:
             continue
 
-        PrintTable(stdscr, size, startPoz, table, locations)
         cursorPoz = {'y': locations[currentPoz['y']][currentPoz['x']]['y'],
                      'x': locations[currentPoz['y']][currentPoz['x']]['x']}
 
         # XXX
-        stdscr.move(0, 0)
-        stdscr.addstr(str(currentPoz))
-        stdscr.move(0, 20)
-        stdscr.addstr(str(cursorPoz))
-        stdscr.addstr(15, 0, str(table))
-        # XXX
-        stdscr.move(cursorPoz['y'], cursorPoz['x'])
+        # stdscr.move(0, 0)
+        # stdscr.addstr(str(currentPoz))
+        # stdscr.move(0, 20)
+        # stdscr.addstr(str(cursorPoz))
+        # stdscr.addstr(15, 0, str(table))
+        # --XXX
         stdscr.refresh()
-'''
-        if Progress(table, , 1):
-            break
-        if Progress(table, 2):
-            break
-'''
+
+
+def intro():
+    input_string = str(input("Enter the table size as ROWxCOLUMN (i.e. 3x3): "))
+    col_size, row_size = int(input_string.split('x', 1)[0]), int(input_string.split('x', 1)[1])
+    size['y'] = row_size
+    size['x'] = col_size
+
+intro()
 wrapper(main)
