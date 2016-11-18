@@ -55,14 +55,14 @@ def check_win(table, step_poz, player):
             ndr += 1
         else:
             ndr = 0
-    if nr == s:
-        return True, "nr"
-    elif nc == s:
-        return True, "nc"
-    elif ndl == s:
-        return True, "ndl"
-    elif ndr == s:
-        return True, "ndr"
+    if nr > s:
+        return True  # , "nr"
+    elif nc > s:
+        return True  # , "nc"
+    elif ndl > s:
+        return True  # , "ndl"
+    elif ndr > s:
+        return True  # , "ndr"
     else:
         return False
     # return (nr == s) or (nc == s) or (ndl == s) or (ndr == s)
@@ -76,15 +76,6 @@ def check_game_over(table):
             if cell == 0:
                 game_over = False
     return game_over
-
-
-# def asdasd(t, stepPoz, player):
-#     """
-#     Writes the player's number into the table if the cell at stepPoz is empty
-#     """
-#     if t[stepPoz['y']][stepPoz['x']] == 0:
-#         t[stepPoz['y']][stepPoz['x']] = player
-#     return t
 
 
 def check_step(table, step_poz):
@@ -105,6 +96,16 @@ def step(table, step_poz, player):
     if valid_step:
         table[step_poz['y']][step_poz['x']] = player
     return valid_step
+
+
+def color_win(stdscr, size, start_poz, table, locs):
+    # prints table content
+    for i in range(size['y']):
+        for j in range(size['x']):  # generate all rows
+            if table[i][j] == 1:  # player 1
+                stdscr.addstr(locs[i][j]['y'], locs[i][j]['x'], "X")
+            elif table[i][j] == 2:  # player 2
+                stdscr.addstr(locs[i][j]['y'], locs[i][j]['x'], "O")
 
 
 size = {'y': 3, 'x': 3}
@@ -174,6 +175,7 @@ def main(stdscr):
     curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
     curses.curs_set(False)
     if run == 0:
+
         stdscr.addstr(1, 0, "You lose!", curses.color_pair(1))
     elif run == 2:
         stdscr.addstr(1, 0, "Player " + str(player) + " won!", curses.color_pair(2))
