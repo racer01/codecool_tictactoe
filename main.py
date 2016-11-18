@@ -2,7 +2,7 @@
 import sys
 import os
 
-# import curses
+import curses
 from curses import wrapper
 
 import display
@@ -55,7 +55,17 @@ def check_win(table, step_poz, player):
             ndr += 1
         else:
             ndr = 0
-    return (nr == s) or (nc == s) or (ndl == s) or (ndr == s)
+    if nr == s:
+        return True, "nr"
+    elif nc == s:
+        return True, "nc"
+    elif ndl == s:
+        return True, "ndl"
+    elif ndr == s:
+        return True, "ndr"
+    else:
+        return False
+    # return (nr == s) or (nc == s) or (ndl == s) or (ndr == s)
 
 
 def check_game_over(table):
@@ -96,11 +106,13 @@ def step(table, step_poz, player):
         table[step_poz['y']][step_poz['x']] = player
     return valid_step
 
+
 size = {'y': 3, 'x': 3}
 
 
 def main(stdscr):
     # init vars
+    run = 1
     start_poz = {'y': 2, 'x': 4}
     current_poz = {'y': 0, 'x': 0}
     table = init_table(size)  # init an empty table[row][column]
@@ -111,20 +123,22 @@ def main(stdscr):
 
     display.print_table(stdscr, size, start_poz, table, locations)
     # XXX
+    # stdscr.addstr(15, 0, str(curses.has_colors()))
     # stdscr.addstr(10, 0, str(table))
     # stdscr.move(cursor_poz['y'], cursor_poz['x'])
 
     stepped = False
-    while True:
-        display.print_table(stdscr, size, start_poz, table, locations)
+    while run == 1:
         stdscr.addstr(0, 0, "player " + str(player))
         stdscr.move(cursor_poz['y'], cursor_poz['x'])
         k = stdscr.getkey()
         if k == " ":
             stepped = step(table, current_poz, player)
-            if check_win(table, current_poz, player) or check_game_over(table):
-                break
-            if stepped:
+            if check_game_over(table):
+                run = 0
+            elif check_win(table, current_poz, player):
+                run = 2
+            elif stepped:
                 if player == 1:
                     player = 2
                 else:
@@ -143,6 +157,7 @@ def main(stdscr):
                 current_poz['x'] += 1
         else:
             continue
+        display.print_table(stdscr, size, start_poz, table, locations)
 
         cursor_poz = {'y': locations[current_poz['y']][current_poz['x']]['y'],
                       'x': locations[current_poz['y']][current_poz['x']]['x']}
@@ -155,12 +170,24 @@ def main(stdscr):
         # stdscr.addstr(15, 0, str(table))
         # --XXX
         stdscr.refresh()
-    
+    curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
+    curses.curs_set(False)
+    if run == 0:
+        stdscr.addstr(1, 0, "You lose!", curses.color_pair(1))
+    elif run == 2:
+        stdscr.addstr(1, 0, "Player " + str(player) + " won!", curses.color_pair(2))
+    stdscr.getkey()
+
 
 def intro():
     # 80x24                                                                                |
+    print("                                                                                ")
+    print("                                                                                ")
     print("                WELCOME TO TICTACTOE!                                           ")
+    print("                                                                                ")
     print("                                          by László Székely-Tóth                ")
+    print("                                                                                ")
     input_string = str(input("Enter the table size as ROWxCOLUMN (default: 3x3): "))
     if input_string:
         col_size, row_size = int(input_string.split('x', 1)[0]), int(input_string.split('x', 1)[1])
