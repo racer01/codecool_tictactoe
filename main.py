@@ -28,11 +28,14 @@ def check_win(table, step_poz, player):
     """
     Checks and returns whether a player won
     """
+    s = 3  # min(size['y'], size['x'])  # biggest inner square edge length
     # horizontally ---
     nr = 0
     for cell in table[step_poz['y']]:
         if cell == player:
             nr += 1
+            if nr == s:
+                return True
         else:
             nr = 0
     # vertically |
@@ -40,32 +43,27 @@ def check_win(table, step_poz, player):
     for row in table:
         if row[step_poz['x']] == player:
             nc += 1
+            if nc == s:
+                return True
         else:
             nc = 0
     # diagonally
-    s = min(size['y'], size['x'])  # biggest inner square edge length
     ndl = 0  # diagonal left  /
     ndr = 0  # diagonal right \
     for i in range(s):
         if table[i][s - i - 1] == player:
             ndl += 1
+            if ndl == s:
+                return True
         else:
             ndl = 0
         if table[i][i] == player:
             ndr += 1
+            if ndr == s:
+                return True
         else:
             ndr = 0
-    if nr > s:
-        return True  # , "nr"
-    elif nc > s:
-        return True  # , "nc"
-    elif ndl > s:
-        return True  # , "ndl"
-    elif ndr > s:
-        return True  # , "ndr"
-    else:
-        return False
-    # return (nr == s) or (nc == s) or (ndl == s) or (ndr == s)
+    return False
 
 
 def check_game_over(table):
@@ -179,6 +177,8 @@ def main(stdscr):
         stdscr.addstr(1, 0, "You lose!", curses.color_pair(1))
     elif run == 2:
         stdscr.addstr(1, 0, "Player " + str(player) + " won!", curses.color_pair(2))
+    stdscr.addstr(10, 0, "Press any key to exit!")
+    stdscr.refresh()
     stdscr.getkey()
 
 
@@ -190,7 +190,7 @@ def intro():
     print("                                                                                ")
     print("                                          by László Székely-Tóth                ")
     print("                                                                                ")
-    input_string = str(input("Enter the table size as ROWxCOLUMN (default: 3x3): "))
+    input_string = str(input("Enter the table size as ROWxCOLUMN (default: 3x3, max 5x5): "))
     if input_string:
         col_size, row_size = int(input_string.split('x', 1)[0]), int(input_string.split('x', 1)[1])
         size['y'] = row_size
