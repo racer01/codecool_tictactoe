@@ -5,17 +5,25 @@ import os
 import curses
 from curses import wrapper
 
-import display
+from display import Display
+from point import Point
 
 
 def init_table(size):
     """
-    Returns a (2d) list[[]] with 0 values as table[row][column]
+    Returns a list of lists with 0 values, as table[row][column]
+
+    Args:
+        size: a dictionary with the size of the list of lists,
+            in {'width': x, 'height': y} format
+
+    Returns:
+        list of lists full of 0s
     """
     t = []
-    for i in range(size['y']):
+    for i in range(size['height']):
         temp = []
-        for j in range(size['x']):
+        for j in range(size['width']):
             temp.append(0)  # populating with 0s
         t.append(temp)
     return t
@@ -97,6 +105,7 @@ def step(table, step_poz, player):
 
 
 def color_win(stdscr, size, start_poz, table, locs):
+    """ NOT IMPLEMENTED """
     # prints table content
     for i in range(size['y']):
         for j in range(size['x']):  # generate all rows
@@ -106,30 +115,25 @@ def color_win(stdscr, size, start_poz, table, locs):
                 stdscr.addstr(locs[i][j]['y'], locs[i][j]['x'], "O")
 
 
-size = {'y': 3, 'x': 3}
-
-
 def main(stdscr):
     # init vars
     run = 1
-    start_poz = {'y': 2, 'x': 4}
     current_poz = {'y': 0, 'x': 0}
+    size = {'height': input_size['height'] or 3,
+            'width': input_size['width'] or 3}
     table = init_table(size)  # init an empty table[row][column]
-    locations = display.generate_cell_locations(size, start_poz)  # calc possible step locations[row][col]['y' or 'x']
-    cursor_poz = {'y': locations[current_poz['y']][current_poz['x']]['y'],
-                  'x': locations[current_poz['y']][current_poz['x']]['x']}
+    # init display
+    padding = {'y': 2, 'x': 4}
+    display = Display(stdscr, size, padding)
+
     player = 1
 
-    display.print_table(stdscr, size, start_poz, table, locations)
-    # XXX
-    # stdscr.addstr(15, 0, str(curses.has_colors()))
-    # stdscr.addstr(10, 0, str(table))
-    # stdscr.move(cursor_poz['y'], cursor_poz['x'])
+    display.print_table(table)
 
     stepped = False
     while run == 1:
         stdscr.addstr(0, 0, "player " + str(player))
-        stdscr.move(cursor_poz['y'], cursor_poz['x'])
+        display.move_cursor(current_poz)
         k = stdscr.getkey()
         if k == " ":
             stepped = step(table, current_poz, player)
@@ -143,7 +147,7 @@ def main(stdscr):
                 else:
                     player = 1
         elif k == "KEY_DOWN":
-            if current_poz['y'] < size['y'] - 1:
+            if current_poz['y'] < size['height'] - 1:
                 current_poz['y'] += 1
         elif k == "KEY_UP":
             if current_poz['y'] > 0:
@@ -152,28 +156,17 @@ def main(stdscr):
             if current_poz['x'] > 0:
                 current_poz['x'] -= 1
         elif k == "KEY_RIGHT":
-            if current_poz['x'] < size['x'] - 1:
+            if current_poz['x'] < size['width'] - 1:
                 current_poz['x'] += 1
         else:
             continue
-        display.print_table(stdscr, size, start_poz, table, locations)
+        display.print_table(table)
 
-        cursor_poz = {'y': locations[current_poz['y']][current_poz['x']]['y'],
-                      'x': locations[current_poz['y']][current_poz['x']]['x']}
-
-        # XXX
-        # stdscr.move(0, 0)
-        # stdscr.addstr(str(current_poz))
-        # stdscr.move(0, 20)
-        # stdscr.addstr(str(cursor_poz))
-        # stdscr.addstr(15, 0, str(table))
-        # --XXX
         stdscr.refresh()
     curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
     curses.curs_set(False)
     if run == 0:
-
         stdscr.addstr(1, 0, "You lose!", curses.color_pair(1))
     elif run == 2:
         stdscr.addstr(1, 0, "Player " + str(player) + " won!", curses.color_pair(2))
@@ -184,17 +177,29 @@ def main(stdscr):
 
 def intro():
     # 80x24                                                                                |
+    print("     _____ _    _____        _____                                              ")
+    print("    |_   _(_)  |_   _|      |_   _|                                             ")
+    print("      | |  _  ___| | __ _  ___| | ___   ___                                     ")
+    print("      | | | |/ __| |/ _` |/ __| |/ _ \ / _ \                                    ")
+    print("      | | | | (__| | (_| | (__| | (_) |  __/                                    ")
+    print("      \_/ |_|\___\_/\__,_|\___\_/\___/ \___|                                    ")
     print("                                                                                ")
-    print("                                                                                ")
-    print("                WELCOME TO TICTACTOE!                                           ")
-    print("                                                                                ")
-    print("                                          by László Székely-Tóth                ")
-    print("                                                                                ")
-    input_string = str(input("Enter the table size as ROWxCOLUMN (default: 3x3, max 5x5): "))
+    print("________________________________________ _______________________ _______  ")
+    print("\__   __\__   __(  ____ \__   __(  ___  (  ____ \__   __(  ___  (  ____ \ ")
+    print("   ) (     ) (  | (    \/  ) (  | (   ) | (    \/  ) (  | (   ) | (    \/ ")
+    print("   | |     | |  | |        | |  | (___) | |        | |  | |   | | (__     ")
+    print("   | |     | |  | |        | |  |  ___  | |        | |  | |   | |  __)    ")
+    print("   | |     | |  | |        | |  | (   ) | |        | |  | |   | | (       ")
+    print("   | |  ___) (__| (____/\  | |  | )   ( | (____/\  | |  | (___) | (____/\ ")
+    print("   )_(  \_______(_______/  )_(  |/     \(_______/  )_(  (_______(_______/ ")
+    print("                                                                          ")
+    input_string = str(input("Enter the table size as ROWxCOLUMN (default: 3x3, max 7x7): "))
     if input_string:
         col_size, row_size = int(input_string.split('x', 1)[0]), int(input_string.split('x', 1)[1])
-        size['y'] = row_size
-        size['x'] = col_size
+        return {'height': row_size, 'width': col_size}
+    else:
+        return {'height': 3, 'width': 3}
 
-intro()
+
+input_size = intro()
 wrapper(main)
